@@ -1,0 +1,113 @@
+<script>
+(function() {
+  // ==========================================
+  // CONFIGURATIE: Pas hier je instellingen aan
+  // ==========================================
+  var config = {
+    id: 'checkout_warning',           // Unieke ID voor session/dataLayer
+    position: 'bottom-center',        // Opties: 'bottom-left', 'bottom-center', 'bottom-right', 'center-block'
+    maxWidth: '600px',                // Breedte op desktop
+    fontSize: '16px',                 // Lettergrootte tekst en knop
+    sessionOnly: true,                // true = 1x per sessie, false = elke paginaload
+    
+    // Inhoud
+    textHTML: '<p>Please ensure your country of residence, billing address, and payment method match your account email. Using details from different countries or emails is not permitted and may result in a declined transaction.</p>' +
+              '<p>If you believe this is an error, please contact our <a href="https://htalh.com/support/" target="_blank" style="color:inherit; font-weight:bold;">support team</a>.</p>',
+    buttonText: 'Check, close this',
+    
+    // Styling
+    primaryColor: '#333333',          // Tekstkleur
+    btnBgColor: '#ffffff',            // Knop achtergrond
+    btnBorderColor: '#dddddd'         // Knop rand
+  };
+
+  // ==========================================
+  // LOGICA: Hieronder niets wijzigen
+  // ==========================================
+  
+  if (config.sessionOnly && sessionStorage.getItem('gtmt_' + config.id)) return;
+  if (document.getElementById('gtmt-' + config.id)) return;
+
+  window.dataLayer = window.dataLayer || [];
+
+  // Positie CSS logica
+  var posCSS = '';
+  switch(config.position) {
+    case 'bottom-left':
+      posCSS = 'bottom: 15px; left: 15px; transform: none;';
+      break;
+    case 'bottom-right':
+      posCSS = 'bottom: 15px; right: 15px; transform: none;';
+      break;
+    case 'center-block':
+      posCSS = 'top: 50%; left: 50%; transform: translate(-50%, -50%);';
+      break;
+    default: // bottom-center
+      posCSS = 'bottom: 15px; left: 50%; transform: translateX(-50%);';
+  }
+
+  var modalHTML = 
+    '<div class="gtmt-template-box">' +
+      '<button class="gtmt-close-x" aria-label="Close">&times;</button>' +
+      '<div class="gtmt-content">' + config.textHTML + '</div>' +
+      '<button class="gtmt-close-btn">' + config.buttonText + '</button>' +
+    '</div>';
+
+  var style = document.createElement('style');
+  style.innerHTML = 
+    '.gtmt-template-box {' +
+      'position: fixed;' +
+      posCSS +
+      'z-index: 2147483647;' +
+      'background-color: #ffffff;' +
+      'width: calc(100% - 30px);' +
+      'max-width: ' + config.maxWidth + ';' +
+      'border-radius: 12px;' +
+      'box-shadow: 0 8px 30px rgba(0,0,0,0.15);' +
+      'padding: 30px;' +
+      'text-align: left;' +
+      'box-sizing: border-box;' +
+      'color: ' + config.primaryColor + ';' +
+      'font-family: sans-serif;' +
+    '}' +
+    '.gtmt-close-x {' +
+      'position: absolute; top: 10px; right: 15px; background: none; border: none;' +
+      'font-size: 26px; color: #aaa; cursor: pointer; line-height: 1; padding: 5px;' +
+    '}' +
+    '.gtmt-content p { font-size: ' + config.fontSize + '; line-height: 1.5; margin: 0 0 14px 0; }' +
+    '.gtmt-content p:last-child { margin-bottom: 20px; }' +
+    '.gtmt-close-btn {' +
+      'background-color: ' + config.btnBgColor + '; color: ' + config.primaryColor + ';' +
+      'border: 1px solid ' + config.btnBorderColor + '; padding: 14px 24px;' +
+      'border-radius: 8px; font-size: ' + config.fontSize + '; font-weight: 600;' +
+      'cursor: pointer; width: 100%; transition: opacity 0.2s;' +
+    '}' +
+    '.gtmt-close-btn:hover { opacity: 0.8; }' +
+    /* Mobiel fix voor center-block (voorkom dat hij te hoog wordt) */
+    '@media (max-height: 500px) { .gtmt-template-box { position: absolute; top: 20px; transform: translateX(-50%); } }';
+
+  document.head.appendChild(style);
+  
+  var div = document.createElement('div');
+  div.id = 'gtmt-' + config.id;
+  div.innerHTML = modalHTML;
+  document.body.appendChild(div);
+
+  if (config.sessionOnly) sessionStorage.setItem('gtmt_' + config.id, 'true');
+
+  var closeModal = function() {
+    var element = document.getElementById('gtmt-' + config.id);
+    if (element) {
+      window.dataLayer.push({
+        'event': 'gtmt_popup_closed',
+        'popup_id': config.id
+      });
+      element.parentNode.removeChild(element);
+    }
+  };
+
+  div.querySelector('.gtmt-close-btn').onclick = closeModal;
+  div.querySelector('.gtmt-close-x').onclick = closeModal;
+
+})();
+</script>
